@@ -38,6 +38,9 @@ if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
   }
 }
 
+my $version = "1.0-beta";
+my $copyright = "Copyright (c) 2010 David Hay";
+
 my @rawExtensions = (
   "nef", "nrw",        # Nikon
   "crw", "cr2",        # Canon
@@ -73,8 +76,6 @@ my @extraExtensions = (
   "xmp",
 );
 
-my $version = "1.0";
-my $copyright = "Copyright (c) 2010 David Hay";
 my $sourceDir;
 my @rawPatterns = ( '\.(?i:' . join('|', @rawExtensions) . ')$');
 my @includePatterns = (
