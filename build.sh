@@ -31,6 +31,27 @@ filter() {
   sed "s/_@@_BUILD_VERSION_@@_/${BUILD_VERSION}/g" $1
 }
 
+package_source() {
+  archive_basedir="photoingest-${BUILD_VERSION}-sources"
+  archive_dir="${project_build_dir}/${archive_basedir}"
+
+  echo "Assembling source archive in ${archive_dir}";
+  mkdir -p  $archive_dir
+  ${CP} -R ${project_basedir}/src ${archive_dir}
+  ${CP} ${project_basedir}/LICENSE* ${archive_dir}
+  ${CP} ${project_basedir}/build.* ${archive_dir}
+
+  tar_file=${project_build_dir}/${archive_basedir}.tar.gz
+
+  echo "Generating source tar ${tar_file}"
+  tar -zcf ${tar_file} --exclude='.svn' -C ${project_build_dir} ${archive_basedir}
+
+  zip_file=${project_build_dir}/${archive_basedir}.zip
+
+  echo "Generating source zip ${zip_file}"
+  (cd ${project_build_dir} && zip -qr ${zip_file} ${archive_basedir} -x '*/.svn/*')
+}
+
 package() {
   archive_basedir="photoingest-${BUILD_VERSION}"
   archive_dir="${project_build_dir}/${archive_basedir}"
@@ -48,7 +69,7 @@ package() {
   tar_file=${project_build_dir}/${archive_basedir}.tar.gz
 
   echo "Generating tar ${tar_file}"
-  tar -zcf ${tar_file} -C ${project_build_dir} ${archive_basedir}
+  tar -zcf ${tar_file} --wildcards -C ${project_build_dir} ${archive_basedir}
 
   zip_file=${project_build_dir}/${archive_basedir}.zip
 
@@ -57,13 +78,15 @@ package() {
 }
 
 opt_package=0
+opt_package_source=0
 opt_clean=0
 conf=${project_basedir}/build.conf
-while getopts cpf:h arg; do
+while getopts cpsf:h arg; do
   case $arg in
     c) opt_clean=1 ;;
     f) conf=$OPTARG ;;
     p) opt_package=1 ;;
+    s) opt_package_source=1 ;;
     h|?) usage; exit 1 ;;
   esac
 done
@@ -72,5 +95,6 @@ source ${conf}
 
 if [ $opt_clean   -eq 1 ]; then clean;   fi
 if [ $opt_package -eq 1 ]; then package; fi
+if [ $opt_package_source -eq 1 ]; then package_source; fi
 
 echo "Finished at: $(date)"
