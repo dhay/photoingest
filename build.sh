@@ -24,7 +24,7 @@ END
 
 clean() {
   echo "Deleting directory ${project_build_dir}"
-  rm -rf ${project_build_dir}
+  rm -rf "${project_build_dir}"
 }
 
 filter() {
