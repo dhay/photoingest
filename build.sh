@@ -28,7 +28,7 @@ clean() {
 }
 
 filter() {
-  sed "s/_@@_BUILD_VERSION_@@_/${BUILD_VERSION}/g" $1
+  sed "s/_@@_BUILD_VERSION_@@_/${BUILD_VERSION}/g" "$1"
 }
 
 package_source() {
@@ -36,20 +36,20 @@ package_source() {
   archive_dir="${project_build_dir}/${archive_basedir}"
 
   echo "Assembling source archive in ${archive_dir}";
-  mkdir -p  $archive_dir
-  ${CP} -R ${project_basedir}/src ${archive_dir}
-  ${CP} ${project_basedir}/LICENSE* ${archive_dir}
-  ${CP} ${project_basedir}/build.* ${archive_dir}
+  mkdir -p  "$archive_dir"
+  ${CP} -R "${project_basedir}/src" "${archive_dir}"
+  ${CP} "${project_basedir}/LICENSE"* "${archive_dir}"
+  ${CP} "${project_basedir}/build."* "${archive_dir}"
 
   tar_file=${project_build_dir}/${archive_basedir}.tar.gz
 
   echo "Generating source tar ${tar_file}"
-  tar -zcf ${tar_file} --exclude='.svn' -C ${project_build_dir} ${archive_basedir}
+  tar -zcf "${tar_file}" --exclude='.svn' -C "${project_build_dir}" "${archive_basedir}"
 
   zip_file=${project_build_dir}/${archive_basedir}.zip
 
   echo "Generating source zip ${zip_file}"
-  (cd ${project_build_dir} && zip -qr ${zip_file} ${archive_basedir} -x '*/.svn/*')
+  (cd "${project_build_dir}" && zip -qr "${zip_file}" "${archive_basedir}" -x '*/.svn/*')
 }
 
 package() {
@@ -58,23 +58,24 @@ package() {
 
   echo "Assembling archive in ${archive_dir}";
 
-  mkdir -p  $archive_dir
+  mkdir -p  "$archive_dir"
   CP="cp -f"
-  for f in ${project_src_dir}/perl/*; do
-    filter $f > ${archive_dir}/$(basename $f);
+  for f in "${project_src_dir}/perl/"*; do
+    bf=$(basename "$f")
+    filter "$f" > "${archive_dir}/$bf"
   done
-  ${CP} ${project_basedir}/LICENSE* ${archive_dir}
-#  ${CP} ${project_basedir}/README* ${archive_dir}
+  ${CP} "${project_basedir}/LICENSE.txt" "${archive_dir}"
+#  ${CP} "${project_basedir}/README*" "${archive_dir}"
 
   tar_file=${project_build_dir}/${archive_basedir}.tar.gz
 
   echo "Generating tar ${tar_file}"
-  tar -zcf ${tar_file} --wildcards -C ${project_build_dir} ${archive_basedir}
+  tar -zcf "${tar_file}" --wildcards -C "${project_build_dir}" "${archive_basedir}"
 
   zip_file=${project_build_dir}/${archive_basedir}.zip
 
   echo "Generating zip ${zip_file}"
-  (cd ${project_build_dir} && zip -qr ${zip_file} ${archive_basedir})
+  (cd "${project_build_dir}" && zip -qr "${zip_file}" "${archive_basedir}")
 }
 
 opt_package=0
@@ -91,7 +92,7 @@ while getopts cpsf:h arg; do
   esac
 done
 
-source ${conf}
+source "${conf}"
 
 if [ $opt_clean   -eq 1 ]; then clean;   fi
 if [ $opt_package -eq 1 ]; then package; fi
