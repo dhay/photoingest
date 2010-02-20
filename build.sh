@@ -28,7 +28,7 @@ clean() {
 }
 
 filter() {
-  sed "s/_@@_BUILD_VERSION_@@_/${BUILD_VERSION}/g" "$1"
+  sed "s/__BUILD_VERSION__/${BUILD_VERSION}/g" "$1"
 }
 
 package_source() {

@@ -38,7 +38,7 @@ if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
   }
 }
 
-my $version = "_@@_BUILD_VERSION_@@_";
+my $version = "__BUILD_VERSION__";
 my $copyright = "Copyright (c) 2010 David Hay";
 
 my @rawExtensions = (
@@ -326,7 +326,7 @@ sub extractRawJpg {
     $exifTool->Options(Binary=>1);
 
     my $info = $exifTool->ImageInfo($rawFile, 'JpgFromRaw');
-    $exifTool->SetNewValuesFromFile($rawFile, '*:*>*:*');
+    $exifTool->SetNewValuesFromFile($rawFile, 'exif:*>exif:*');
     $exifTool->WriteInfo($$info{'JpgFromRaw'}, $jpgFile);
     # todo: error checking for file write
   }
