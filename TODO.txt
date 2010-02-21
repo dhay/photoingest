@@ -1,0 +1,1 @@
+- Add copyright info to iptc:CopyrightNotice, exif:Copyright
