@@ -292,13 +292,13 @@ sub convertToDNG {
 
   my $command = join(' ', $dngConvert, @opts);
   print "Invoking DNG converter: $command\n" if $verbose;
-  if (!$test) {
+  do {
     system($dngConvert, @opts);
     if ($? != 0) {
       print STDERR "Unable to invoke DNG converter: $command\n";
       return 0;
     }
-  }
+  } unless $test;
 
   return 1;
 }
@@ -321,7 +321,7 @@ sub extractRawJpg {
 
   print "Extracting embedded JPG from $rawFile to $jpgFile\n" if $verbose;
 
-  if (!$test) {
+  do {
     my $exifTool = new Image::ExifTool;
     $exifTool->Options(Binary=>1);
 
@@ -329,7 +329,7 @@ sub extractRawJpg {
     $exifTool->SetNewValuesFromFile($rawFile, 'exif:*>exif:*');
     $exifTool->WriteInfo($$info{'JpgFromRaw'}, $jpgFile);
     # todo: error checking for file write
-  }
+  } unless $test;
   return $jpgFile;
 }
 
@@ -365,7 +365,7 @@ sub processFileList {
   }
 
   print "Writing processing history\n";
-  if (! $test) {
+  do {
     my $hf = catfile($srcDir, $historyFile);
     open(HISTORY, ">>$hf") or die "Unable to open $hf for writing\n";
     binmode(HISTORY, ":utf8");
@@ -380,7 +380,7 @@ sub processFileList {
     }
 
     close(HISTORY);
-  }
+  } unless $test;
 }
 
 #-------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ sub copyOriginalToDest {
     }
 
     print "Copying $srcFile to $destFile\n" if $verbose;
-    if (!$test) {
+    do {
       if (!copy($srcFile, $destFile)) {
 	print STDERR "Error copying file: $!\n";
 	$error = 1;
@@ -427,7 +427,7 @@ sub copyOriginalToDest {
 	print STDERR "Verification failed: $destFile\n";
 	$error = 1;
       }
-    }
+    } unless $test;
   }
 
 }
@@ -456,13 +456,13 @@ sub extractJpegToDest {
       else {
         my $destFile = catfile($dest, $jpgFilename);
 	print "Copying extracted JPEG $jpgFile to $destFile\n" if $verbose;
-	if (!$test) {
+	do {
 	  if (!copy($jpgFile, $destFile)) {
 	    print STDERR "Unable to copy JPEG file: $!\n";
 	    $error = 1;
 	    next JPG;
 	  }
-	}
+	} unless $test;
       }
     }
   }
@@ -493,13 +493,13 @@ sub convertDNGToDest {
       else {
 	my $destFile = catfile($dest, $dngFilename);
 	print "Copying converted DNG $dngFile to $destFile\n" if $verbose;
-	if (!$test) {
+	do {
 	  if (!copy($dngFile, $destFile)) {
 	    print STDERR "Unable to copy DNG file: $!\n";
 	    $error = 1;
 	    next DNG;
 	  }
-	}
+	} unless $test
       }
       if (!$keepRAW) {
         trashFile($rawFile);
@@ -516,8 +516,12 @@ sub trashFile {
 
   return if $test;
 
-  if ($^O =~ /(?i:MSWin32|cygwin)/) {
-    Recycle($file);
+  if ($^O =~ /(MSWin32|cygwin)/i) {
+    my $trashFile = $file;
+    if ($^O =~ /cygwin/i) {
+      $trashFile = Cygwin::posix_to_win_path($file);
+    }
+    Recycle($trashFile);
   }
   elsif ($^O =~ /(?i)darwin/) {
     move($file, catfile($ENV{HOME}, ".Trash"));
@@ -532,10 +536,10 @@ sub trashFile {
 
 sub logToHistoryFile {
   my ($dir, $file, $history) = @_;
-  if (!$test) {
+  do {
     my $hentry = abs2rel($file, $dir);
     print HISTORY "$hentry\n" unless exists $history->{$hentry};
-  }
+  } unless $test;
 }
 
 #-------------------------------------------------------------------------------
@@ -687,7 +691,6 @@ photoingest.pl [options] SOURCE DESTINATION [DESTINATION...]
   --verbose          Display additional logging.
   --verify           Verify the files copied from the source directory.
   --no-verify        Do not verify that files were copied successfully.
-  --overwrite        Overwrite existing files in the destination
 
 =head1 DESCRIPTION
 
