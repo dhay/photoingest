@@ -1,3 +1,19 @@
+DEPENDENCIES
+------------
+ImageTools::ExifTool
+
+  PhotoIngest uses Phil Harvey's execllent ExifTool library. Available via
+  CPAN, PPM or directly from http://www.sno.phy.queensu.ca/~phil/exiftool/
+
+Win32::API
+Win32::FileOp
+
+  These libraries are only required on Windows based systems.  When installing
+  on a cygwin 1.7 based system, make sure to install gcc4 in order to compile
+  the Win32::API package.
+
+INSTALLATION
+------------
 perl Makefile.PL
 make
 make install
