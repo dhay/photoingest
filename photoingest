@@ -28,8 +28,8 @@ use File::stat;
 use Getopt::Long;
 use Pod::Usage;
 
-$VERSION = "1.0-beta-2";
-$COPYRIGHT = "Copyright (c) 2010 David Hay";
+our $VERSION = "1.0-beta-2";
+our $COPYRIGHT = "Copyright (c) 2010 David Hay";
 
 # Optionally import libs for dealing with Windows Recycle Bin
 if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
@@ -588,8 +588,8 @@ sub processSourceDirectory {
 #-------------------------------------------------------------------------------
 
 sub displayVersion {
-  my $cmd = basename($0);
-  print "Photoingest version $VERSION. $COPYRIGHT\n";
+    my $cmd = basename($0);
+    print "Photoingest version $VERSION. $COPYRIGHT\n";
 }
 
 #===============================================================================
@@ -598,28 +598,30 @@ my $help;
 my $showVersion;
 
 # Parse the command line
-Getopt::Long::Configure ("bundling");
-GetOptions("file-pattern=s" => \$filenamePattern,
-           "dry-run|test"   => \$test,
-           "dng!"           => \$toDNG,
-           "dng-converter"  => \$dngConvert,
-           "dng-options"    => \$dngOpts,
-	   "dng-keep-raw!"  => \$keepRAW,
-           "jpg-extract!"   => \$rawJpgExtract,
-           "verbose"        => \$verbose,
-	   "verify!"        => \$verify,
-           "overwrite!"     => \$overwrite,
-	   "new!"           => \$newFiles,
-	   "version"        => \$showVersion,
-           "help"           => \$help)
-  or pod2usage(2);
+my $cmd = new Getopt::Long::Parser;
+$cmd->configure("bundling");
+$cmd->getoptions(
+    "file-pattern=s" => \$filenamePattern,
+    "dry-run|test"   => \$test,
+    "dng!"           => \$toDNG,
+    "dng-converter"  => \$dngConvert,
+    "dng-options"    => \$dngOpts,
+    "dng-keep-raw!"  => \$keepRAW,
+    "jpg-extract!"   => \$rawJpgExtract,
+    "verbose"        => \$verbose,
+    "verify!"        => \$verify,
+    "overwrite!"     => \$overwrite,
+    "new!"           => \$newFiles,
+    "version"        => \$showVersion,
+    "help"           => \$help)
+    or pod2usage(2);
 
 pod2usage({ -exitval => 1,
             -verbose => $verbose ? 1 : 0 } ) if $help;
 
 if ($showVersion) {
-  displayVersion();
-  exit;
+    displayVersion();
+    exit;
 }
 
 print "Test mode enabled, no files will be copied or modified\n" if $test;
@@ -633,8 +635,12 @@ die "Unable to read from $sourceDir\n" if (! -r $sourceDir);
 @destDirs = @ARGV;
 die "Destination directories not specified\n" if (!@destDirs);
 for my $dest (@destDirs) {
-  die "Destination directory $dest does not exist\n" if (! -d $dest);
-  die "Unable to write to $dest\n" if (! -w $dest);
+    if (! -d $dest) {
+	die "Destination directory $dest does not exist\n";
+    }
+    if (! -w $dest) {
+	die "Unable to write to $dest\n";
+    }
 }
 
 # Convert relative source and dest paths to absolute. Makes everything easier.
@@ -642,31 +648,33 @@ $sourceDir = rel2abs($sourceDir);
 @destDirs = map {rel2abs($_);} @destDirs;
 
 # check DNG Options
-die "No DNG options provided in --dng-options\n" if $toDNG && !$dngOpts;
+if ($toDNG && !$dngOpts) {
+    die "No DNG options provided in --dng-options\n";
+}
 
 if ($toDNG && !$dngConvert) {
-  if ( $^O =~ /darwin/i ) {
-    $dngConvert = 
-     '/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter';
-  }
-  elsif ($^O =~ /(?i:MSWin32|cygwin)/) {
-    $dngConvert = 'C:\Program Files\Adobe\Adobe DNG Converter.exe';
-    if ($^O =~ /cygwin/i) {
-      $dngConvert = Cygwin::win_to_posix_path($dngConvert);
+    if ( $^O =~ /darwin/i ) {
+	$dngConvert = '/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter';
     }
-  }
-  else {
-    die "Unable to automatically determine DNG converter for OS $^O. Specify one with --dng-converter\n";
-  }
+    elsif ($^O =~ /(?i:MSWin32|cygwin)/) {
+	$dngConvert = 'C:\Program Files\Adobe\Adobe DNG Converter.exe';
+	if ($^O =~ /cygwin/i) {
+	    $dngConvert = Cygwin::win_to_posix_path($dngConvert);
+	}
+    }
+    else {
+	die "Unable to automatically determine DNG converter for OS $^O.  " .
+	    "Specify one with --dng-converter\n";
+    }
 
-  # See if the DNG converter even exists.
-  die "$dngConvert cannot be executed\n" unless -x $dngConvert;
+    # See if the DNG converter even exists.
+    die "$dngConvert cannot be executed\n" unless -x $dngConvert;
 }
 
 processSourceDirectory($sourceDir);
 
 if ($error) {
-  die "There were errors while processing $sourceDir\n";
+    die "There were errors while processing $sourceDir\n";
 }
 
 __END__
