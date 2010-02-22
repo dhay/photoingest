@@ -367,7 +367,7 @@ sub processFileList {
   print "Writing processing history\n";
   do {
     my $hf = catfile($srcDir, $historyFile);
-    open(HISTORY, ">>$hf") or die "Unable to open $hf for writing\n";
+    open(HISTORY, ">>$hf") or die "Unable to open $hf for writing: $!\n";
     binmode(HISTORY, ":utf8");
 
     # Set autoflush on HISTORY
@@ -550,7 +550,7 @@ sub readHistory {
   print "Reading history of previous imports\n";
 
   my %history = ();
-  open(HISTORY, "<$historyFile") or return;
+  open(HISTORY, "<$historyFile") or return; # todo: error handling...check for existance
   binmode(HISTORY, ":utf8");
   while (<HISTORY>) {
     chomp;
