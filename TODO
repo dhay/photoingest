@@ -1,0 +1,3 @@
+- Add copyright info to iptc:CopyrightNotice, exif:Copyright, xmp:Rights
+- Ability to add arbitrary xmp, iptc, exif fields?
+- Include file format (JPG, DNG, etc.) in rename pattern

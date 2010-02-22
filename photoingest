@@ -28,6 +28,9 @@ use File::stat;
 use Getopt::Long;
 use Pod::Usage;
 
+$VERSION = "1.0-beta-2";
+$COPYRIGHT = "Copyright (c) 2010 David Hay";
+
 # Optionally import libs for dealing with Windows Recycle Bin
 if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
   eval { 
@@ -38,8 +41,6 @@ if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
   }
 }
 
-my $version = "__BUILD_VERSION__";
-my $copyright = "Copyright (c) 2010 David Hay";
 
 my @rawExtensions = (
   "nef", "nrw",        # Nikon
@@ -588,7 +589,7 @@ sub processSourceDirectory {
 
 sub displayVersion {
   my $cmd = basename($0);
-  print "Photoingest version $version. $copyright\n";
+  print "Photoingest version $VERSION. $COPYRIGHT\n";
 }
 
 #===============================================================================
@@ -617,7 +618,7 @@ pod2usage({ -exitval => 1,
             -verbose => $verbose ? 1 : 0 } ) if $help;
 
 if ($showVersion) {
-  displayVersion($version);
+  displayVersion();
   exit;
 }
 
