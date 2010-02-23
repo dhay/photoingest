@@ -80,25 +80,20 @@ my @extraExtensions = (
 my $sourceDir;
 my $historyFile = "photoingest-history.txt";
 my @rawPatterns = ( '\.(?i:' . join('|', @rawExtensions) . ')$');
-my @includePatterns = ( '\.(?:[^.]+)$' );
-#my @includePatterns = (
-#  '\.(?i:' . join('|', @extraExtensions) . ')$',
-#  @rawPatterns
-#);
-my @excludePatterns = ( $historyFile );
+my @includePatterns;
+my @excludePatterns;
 my @destDirs;
 my $filenamePattern = 'img_[%yyyy][%MM][%dd]_[%FILE]';
-my $test;
-my $toDNG = 1;
-my $keepRAW = 0;
-my $dngOpts = '-c -p2 -d [%OUTPUT_DIR] -o [%OUTPUT_FILE] [%INPUT]';
-my $verbose;
-my $overwrite;
-my $newFiles;
+my $test = 0;
+my $toDNG = 0;
 my $dngConvert;
-my $rawJpgExtract = 1;
+my $dngOpts;
+my $keepRAW = 0;
+my $verbose = 0;
+my $overwrite = 0;
+my $newFiles = 1;
+my $rawJpgExtract = 0;
 my $verify = 1;
-
 my $error = 0;
 
 
@@ -626,6 +621,8 @@ $cmd->getoptions(
     "dng-options"    => \$dngOpts,
     "dng-keep-raw!"  => \$keepRAW,
     "jpg-extract!"   => \$rawJpgExtract,
+    "include=s"      => \@includePatterns,
+    "exclude=s"      => \@excludePatterns,
     "verbose"        => \$verbose,
     "verify!"        => \$verify,
     "overwrite!"     => \$overwrite,
@@ -665,19 +662,30 @@ for my $dest (@destDirs) {
 $sourceDir = rel2abs($sourceDir);
 @destDirs = map {rel2abs($_);} @destDirs;
 
-# check DNG Options
-if ($toDNG && !$dngOpts) {
-    die "No DNG options provided in --dng-options\n";
+# Set defaults for include and exclude patterns if not specified on command line
+if (!@includePatterns) {
+    @includePatterns = ( '\.(?:[^.]+)$' );
+}
+if (!@excludePatterns) {
+    @excludePatterns = ( $historyFile );
 }
 
 if ($toDNG && !$dngConvert) {
-    if ( $^O =~ /darwin/i ) {
-	$dngConvert = '/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter';
-    }
-    elsif ($^O =~ /(?i:MSWin32|cygwin)/) {
-	$dngConvert = 'C:\Program Files\Adobe\Adobe DNG Converter.exe';
-	if ($^O =~ /cygwin/i) {
-	    $dngConvert = Cygwin::win_to_posix_path($dngConvert);
+    if ( $^O =~ /(?i:darwin|MSWin32|cygwin)/i ) {
+	# For Windows or Mac OS X, default to Adobe's DNG Converter
+	if ( $^O =~ /darwin/i ) {
+	    $dngConvert = '/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter';
+	}
+	else { # MSWin32 or cygwin
+	    $dngConvert = 'C:\Program Files\Adobe\Adobe DNG Converter.exe';
+	    if ($^O =~ /cygwin/i) {
+		$dngConvert = Cygwin::win_to_posix_path($dngConvert);
+	    }
+	}
+
+	# Set up default DNG converter arguments if not specified
+	if (!$dngOpts) {
+	    $dngOpts = '-c -p2 -d [%OUTPUT_DIR] -o [%OUTPUT_FILE] [%INPUT]';
 	}
     }
     else {
@@ -702,22 +710,24 @@ __END__
 photoingest.pl [options] SOURCE DESTINATION [DESTINATION...]
 
   --help             Brief help message (adding --verbose shows more)
-  --file-pattern     Pattern to use for renaming files.
+  --file-pattern     Pattern to use for renaming files
   --dng, --no-dng    Convert (don't convert) RAW files to DNG
   --dng-options      Options to pass to the DNG converter
   --dng-convert      Path to the DNG converter executable
-  --dng-keep-raw     If converting to DNG, copy the original RAW file too.
+  --dng-keep-raw     If converting to DNG, copy the original RAW file too
   --no-dng-keep-raw  Don't keep the original RAW file after conversion to DNG
   --dry-run, --test  Don't copy or convert files, just print the operations
-  --jpg-extract      Extract embedded JPG images from RAW files.
-  --no-jpg-extract   Do not extract embedded JPG images from RAW files.
+  --exclude          Regex of files to exclude from processing
+  --include          Regex of files to process
+  --jpg-extract      Extract embedded JPG images from RAW files
+  --no-jpg-extract   Do not extract embedded JPG images from RAW files
   --new              Only includes files added since the last import
   --no-new           Copy everything from the source directory
   --overwrite        Replace files in the destination (move old to Trash)
   --no-overwrite     Do not overwrite files in the destination
-  --verbose          Display additional logging.
-  --verify           Verify the files copied from the source directory.
-  --no-verify        Do not verify that files were copied successfully.
+  --verbose          Display additional logging
+  --verify           Verify the files copied from the source directory
+  --no-verify        Do not verify that files were copied successfully
 
 =head1 DESCRIPTION
 
@@ -822,6 +832,20 @@ The name of the file, without the leading directory path, of the DNG file
 
 Doesn't copy any files but prints out log messages indicating what operations
 would have been performed.
+
+=item B<--exclude>
+
+Specify a pattern (regex) that files must not match in order to be considered
+for processing.  Defaults to "photoingest-history.txt".  If this option is
+specified multiple times, the file only needs to match one of the expressions
+to be excluded.
+
+=item B<--include>
+
+Specify a pattern (regex) that files must match in order to be considered for
+processing.  Defaults to "\.(?:[^.]+)$", which matches any file with an
+extension.  If this option is specified multiple times, the file only needs to
+match one of the patterns to be included.
 
 =item B<--jpg-extract>, B<--no-jpg-extract>
 
