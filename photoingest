@@ -31,14 +31,17 @@ use Pod::Usage;
 our $VERSION = "1.0-beta-2";
 our $COPYRIGHT = "Copyright (c) 2010 David Hay";
 
-# Optionally import libs for dealing with Windows Recycle Bin
-if ($^O =~ /MSWin32/i || $^O =~ /cygwin/i) {
-  eval { 
-    require Win32::FileOp;
-  };
-  if (! $@) {
-    Win32::FileOp->import( qw(Recycle) );
-  }
+if ($^O =~ /(?i:MSWin32|cygwin)/) {
+    # Import libs for dealing with Windows Recycle Bin
+    if (eval "require Win32::FileOp") {
+        import Win32::FileOp qw(Recycle);
+    }
+    
+#    if (eval "require File::Glob") {
+	# override the core glob forcing case insensitivity
+#	import File::Glob qw(:globally :nocase);
+#	$doGlob = 1;
+#    }
 }
 
 
@@ -626,7 +629,8 @@ $cmd->getoptions(
     "verbose"        => \$verbose,
     "verify!"        => \$verify,
     "overwrite!"     => \$overwrite,
-    "new!"           => \$newFiles,
+    "new"            => \$newFiles,
+    "all"            => sub { $newFiles = 0; },
     "version"        => \$showVersion,
     "help"           => \$help)
     or pod2usage(2);
@@ -722,7 +726,7 @@ photoingest.pl [options] SOURCE DESTINATION [DESTINATION...]
   --jpg-extract      Extract embedded JPG images from RAW files
   --no-jpg-extract   Do not extract embedded JPG images from RAW files
   --new              Only includes files added since the last import
-  --no-new           Copy everything from the source directory
+  --all              Copy everything from the source directory
   --overwrite        Replace files in the destination (move old to Trash)
   --no-overwrite     Do not overwrite files in the destination
   --verbose          Display additional logging
