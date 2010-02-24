@@ -31,17 +31,15 @@ use Pod::Usage;
 our $VERSION = "1.0-beta-2";
 our $COPYRIGHT = "Copyright (c) 2010 David Hay";
 
+# Check that we have the necessary version of Getopt
+my $reqGetoptVersion = 2.36;
+die "Getopt::Long $reqGetoptVersion or greater required.\n" unless ($Getopt::Long::VERSION >= $reqGetoptVersion);
+
+# Import libs for dealing with Windows Recycle Bin
 if ($^O =~ /(?i:MSWin32|cygwin)/) {
-    # Import libs for dealing with Windows Recycle Bin
     if (eval "require Win32::FileOp") {
         import Win32::FileOp qw(Recycle);
     }
-    
-#    if (eval "require File::Glob") {
-	# override the core glob forcing case insensitivity
-#	import File::Glob qw(:globally :nocase);
-#	$doGlob = 1;
-#    }
 }
 
 
@@ -98,7 +96,8 @@ my $newFiles = 1;
 my $rawJpgExtract = 0;
 my $verify = 1;
 my $error = 0;
-
+my $help;
+my $showVersion;
 
 #===============================================================================
 
@@ -608,32 +607,64 @@ sub displayVersion {
     print "Photoingest version $VERSION. $COPYRIGHT\n";
 }
 
+#-------------------------------------------------------------------------------
+
+sub parseConfig {
+    my ($configFile) = @_;
+
+    open(CONFIG, "<$configFile") 
+        or die "Unable to open config file: $configFile: $!\n";
+
+    my @args = ();
+    while (<CONFIG>) {
+	chomp;
+	push(@args, $_);
+    }
+    close(CONFIG);
+
+    parseCommandLine(\@args);
+}
+
+#-------------------------------------------------------------------------------
+
+sub configOptionHandler {
+    my ($option, $value) = @_;
+    parseConfig($value);
+}
+
+#-------------------------------------------------------------------------------
+
+sub parseCommandLine {
+    my ($args) = @_;
+
+    #todo: need GetOptionsFromArray for this to work
+    Getopt::Long::Configure("bundling");
+    return Getopt::Long::GetOptionsFromArray($args,
+	"file-pattern=s" => \$filenamePattern,
+	"config=s"       => \&configOptionHandler,
+	"dry-run|test"   => \$test,
+	"dng!"           => \$toDNG,
+	"dng-converter"  => \$dngConvert,
+	"dng-options"    => \$dngOpts,
+	"dng-keep-raw!"  => \$keepRAW,
+	"jpg-extract!"   => \$rawJpgExtract,
+	"include=s"      => \@includePatterns,
+	"exclude=s"      => \@excludePatterns,
+	"verbose"        => \$verbose,
+	"verify!"        => \$verify,
+	"overwrite!"     => \$overwrite,
+	"new"            => \$newFiles,
+	"all"            => sub { $newFiles = 0; },
+	"version"        => \$showVersion,
+	"help"           => \$help);
+}
+
+
 #===============================================================================
 
-my $help;
-my $showVersion;
 
 # Parse the command line
-my $cmd = new Getopt::Long::Parser;
-$cmd->configure("bundling");
-$cmd->getoptions(
-    "file-pattern=s" => \$filenamePattern,
-    "dry-run|test"   => \$test,
-    "dng!"           => \$toDNG,
-    "dng-converter"  => \$dngConvert,
-    "dng-options"    => \$dngOpts,
-    "dng-keep-raw!"  => \$keepRAW,
-    "jpg-extract!"   => \$rawJpgExtract,
-    "include=s"      => \@includePatterns,
-    "exclude=s"      => \@excludePatterns,
-    "verbose"        => \$verbose,
-    "verify!"        => \$verify,
-    "overwrite!"     => \$overwrite,
-    "new"            => \$newFiles,
-    "all"            => sub { $newFiles = 0; },
-    "version"        => \$showVersion,
-    "help"           => \$help)
-    or pod2usage(2);
+parseCommandLine(\@ARGV) or pod2usage(2);
 
 pod2usage({ -exitval => 1,
             -verbose => $verbose ? 1 : 0 } ) if $help;
