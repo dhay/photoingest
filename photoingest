@@ -33,7 +33,8 @@ our $COPYRIGHT = "Copyright (c) 2010 David Hay";
 
 # Check that we have the necessary version of Getopt
 my $reqGetoptVersion = 2.36;
-die "Getopt::Long $reqGetoptVersion or greater required.\n" unless ($Getopt::Long::VERSION >= $reqGetoptVersion);
+die "Getopt::Long $reqGetoptVersion or greater required.\n" 
+    unless ($Getopt::Long::VERSION >= $reqGetoptVersion);
 
 # Import libs for dealing with Windows Recycle Bin
 if ($^O =~ /(?i:MSWin32|cygwin)/) {
@@ -407,18 +408,18 @@ sub fileListOperation {
   for (my $idx = 0 ; $idx < @$filelist; $idx++) {
     my $srcFile = @$filelist[$idx];
     my $filename = @$filenames[$idx];
-    &$op($srcFile, $filename, @destDirs);
+    &$op($srcFile, $filename, \@destDirs);
   }
 }
 
 #-------------------------------------------------------------------------------
 
 sub copyOriginalToDest {
-  my ($srcFile, $filename, @destDirs) = @_;
+  my ($srcFile, $filename, $destDirs) = @_;
   my ($f, $d, $ext) = fileparse($filename, qr/.[^.]*/);
 
   # Copy the file to each of the destination directories
-  COPY: for my $dest (@destDirs) {
+  COPY: for my $dest (@$destDirs) {
     my $destFile = catfile($dest, $filename);
     if (-e $destFile) {
       trashFile($destFile);
@@ -451,7 +452,7 @@ sub copyOriginalToDest {
 #-------------------------------------------------------------------------------
 
 sub extractJpegToDest {
-  my ($srcFile, $filename, @destDirs) = @_;
+  my ($srcFile, $filename, $destDirs) = @_;
   my ($f, $d, $ext) = fileparse($filename, qr/.[^.]*/);
 
   # Extract JPG from Raw
@@ -459,7 +460,7 @@ sub extractJpegToDest {
     my $jpgFilename = catfile($d, $f . '.jpg');
     my $first = 1;
     my $jpgFile;
-    JPG: for my $dest (@destDirs) {
+    JPG: for my $dest (@$destDirs) {
       my $rawFile = catfile($dest, $filename);
       if ($first) {
         $first = 0;
@@ -487,7 +488,7 @@ sub extractJpegToDest {
 #-------------------------------------------------------------------------------
 
 sub convertDNGToDest {
-  my ($srcFile, $filename, @destDirs) = @_;
+  my ($srcFile, $filename, $destDirs) = @_;
   my ($f, $d, $ext) = fileparse($filename, qr/.[^.]*/);
 
   # Convert to DNG
@@ -496,7 +497,7 @@ sub convertDNGToDest {
 
     my $first = 1;
     my $dngFile;
-    DNG: for my $dest (@destDirs) {
+    DNG: for my $dest (@$destDirs) {
       my $rawFile = catfile($dest, $filename);
       if ($first) {
 	$first = 0;
@@ -618,7 +619,24 @@ sub parseConfig {
     my @args = ();
     while (<CONFIG>) {
 	chomp;
-	push(@args, $_);
+	next if (/^\s*#/); # skip comments
+	next if (/^\s*$/); # skip blank lines
+
+	if (/^\s*--/) {
+
+	    # Allow arguments with values to have their value on the same line.
+	    # The argument will be the first value, the value is everything
+	    # after the first batch of whitespace.
+	    
+	    my ($arg, $value) = split(/\s+/, $_, 2);
+	    push(@args, $arg);
+	    if ($value) {
+		push(@args, $value);
+	    }
+	}
+	else {
+	    push(@args, $_);
+	}
     }
     close(CONFIG);
 

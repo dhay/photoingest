@@ -1,6 +1,3 @@
 - Add copyright info to iptc:CopyrightNotice, exif:Copyright, xmp:Rights
 - Ability to add arbitrary xmp, iptc, exif fields?
 - Include file format (JPG, DNG, etc.) in rename pattern
-- Include Movie file formats in default include pattern
-- command line to specify include pattern
-- Specify config file with common params (e.g. for multiple cameras)
