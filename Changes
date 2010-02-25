@@ -1,6 +1,9 @@
 1.0-beta-2
     - Only copy EXIF tags to extracted JPEG to avoid timezone issues.
     - Reworked project layout to use ExtUtils::MakeMaker replacing build.sh.
+    - New option: --include to control which files are processed
+    - New option: --exclude to control which files should not be processed
+    - New option: --config to allow options to be specified in a file
 
 1.0-beta-1
     - Initial release
