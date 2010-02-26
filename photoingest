@@ -354,51 +354,53 @@ sub extractRawJpg {
 #-------------------------------------------------------------------------------
 
 sub processFileList {
-  my ($srcDir, $filelist, $history) = @_;
-  my $fileCount = @$filelist;
+    my ($srcDir, $filelist, $history) = @_;
+    my $fileCount = @$filelist;
 
-  print "Processing $fileCount files\n";
+    print "Processing $fileCount files\n";
+
+    return unless $fileCount > 0;
   
-  print "Generating filenames\n";
-  my @filenames = ();
-  for my $srcFile (@$filelist) {
-    my $filename = createFilename($srcFile);
-    if (!$overwrite) {
-      $filename = resolveFilenameConflicts($filename);
-    }
-    push(@filenames, $filename);
-  }
-
-  print "Copying files\n";
-  fileListOperation($filelist, \@filenames, \&copyOriginalToDest);
-
-  if ($rawJpgExtract) {
-    print "Extracting JPEGs from RAW files\n";
-    fileListOperation($filelist, \@filenames, \&extractJpegToDest);
-  }
-
-  if ($toDNG) {
-    print "Converting RAW files to DNG\n";
-    fileListOperation($filelist, \@filenames, \&convertDNGToDest);
-  }
-
-  print "Writing processing history\n";
-  do {
-    my $hf = catfile($srcDir, $historyFile);
-    open(HISTORY, ">>$hf") or die "Unable to open $hf for writing: $!\n";
-    binmode(HISTORY, ":utf8");
-
-    # Set autoflush on HISTORY
-    my $old_fh = select(HISTORY);
-    $| = 1;
-    select($old_fh);
-    
+    print "Generating filenames\n";
+    my @filenames = ();
     for my $srcFile (@$filelist) {
-      logToHistoryFile($srcDir, $srcFile, $history);
+      my $filename = createFilename($srcFile);
+      if (!$overwrite) {
+	  $filename = resolveFilenameConflicts($filename);
+      }
+      push(@filenames, $filename);
     }
 
-    close(HISTORY);
-  } unless $test;
+    print "Copying files\n";
+    fileListOperation($filelist, \@filenames, \&copyOriginalToDest);
+
+    if ($rawJpgExtract) {
+	print "Extracting JPEGs from RAW files\n";
+	fileListOperation($filelist, \@filenames, \&extractJpegToDest);
+    }
+
+    if ($toDNG) {
+	print "Converting RAW files to DNG\n";
+	fileListOperation($filelist, \@filenames, \&convertDNGToDest);
+    }
+
+    print "Writing processing history\n";
+    do {
+	my $hf = catfile($srcDir, $historyFile);
+	open(HISTORY, ">>$hf") or die "Unable to open $hf for writing: $!\n";
+	binmode(HISTORY, ":utf8");
+
+	# Set autoflush on HISTORY
+	my $old_fh = select(HISTORY);
+	$| = 1;
+	select($old_fh);
+    
+	for my $srcFile (@$filelist) {
+	  logToHistoryFile($srcDir, $srcFile, $history);
+	}
+
+	close(HISTORY);
+    } unless $test;
 }
 
 #-------------------------------------------------------------------------------
