@@ -222,6 +222,7 @@ sub shouldProcess {
     my ($sourceDir, $file, $history) = @_;
 
     return 0 unless -f $file;
+    return 0 if $file =~ /photoingest-history.txt/;
   
     my $relFile = abs2rel($file, $sourceDir);
     if ($newFiles && exists $history->{$relFile}) {
