@@ -1,3 +1,9 @@
+1.0-beta-3
+    - Config files specified with the --config option may now include source
+      and destination directories.
+    - photoingest-history.txt is always excluded from processing, regardless of
+      any --exclude options.
+
 1.0-beta-2
     - Only copy EXIF tags to extracted JPEG to avoid timezone issues.
     - Reworked project layout to use ExtUtils::MakeMaker replacing build.sh.
