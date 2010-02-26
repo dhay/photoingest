@@ -612,7 +612,7 @@ sub displayVersion {
 #-------------------------------------------------------------------------------
 
 sub parseConfig {
-    my ($configFile) = @_;
+    my ($configFile, $curArgs) = @_;
 
     open(CONFIG, "<$configFile") 
         or die "Unable to open config file: $configFile: $!\n";
@@ -642,13 +642,10 @@ sub parseConfig {
     close(CONFIG);
 
     parseCommandLine(\@args);
-}
 
-#-------------------------------------------------------------------------------
-
-sub configOptionHandler {
-    my ($option, $value) = @_;
-    parseConfig($value);
+    if ($#args > 0) {
+	push @$curArgs, @args;
+    }
 }
 
 #-------------------------------------------------------------------------------
@@ -660,7 +657,10 @@ sub parseCommandLine {
     Getopt::Long::Configure("bundling");
     return Getopt::Long::GetOptionsFromArray($args,
 	"file-pattern=s" => \$filenamePattern,
-	"config=s"       => \&configOptionHandler,
+	"config=s"       => sub {
+				my ($option, $value) = @_;
+				parseConfig($value, $args);
+			    },
 	"dry-run|test"   => \$test,
 	"dng!"           => \$toDNG,
 	"dng-converter"  => \$dngConvert,
