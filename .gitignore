@@ -1,0 +1,8 @@
+
+# /
+/target
+/*.swp
+/Makefile
+/Makefile.old
+/*.tar.gz
+/*.zip
