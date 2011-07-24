@@ -1,6 +1,6 @@
 DEPENDENCIES
 ------------
-ImageTools::ExifTool
+Image::ExifTool
 
   PhotoIngest uses Phil Harvey's execllent ExifTool library. Available via
   CPAN, PPM or directly from http://www.sno.phy.queensu.ca/~phil/exiftool/
