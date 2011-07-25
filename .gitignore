@@ -6,3 +6,5 @@
 /Makefile.old
 /*.tar.gz
 /*.zip
+blib
+pm_to_blib
