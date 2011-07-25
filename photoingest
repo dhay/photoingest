@@ -614,7 +614,22 @@ sub displayVersion {
 #-------------------------------------------------------------------------------
 
 sub parseConfig {
-    my ($configFile, $curArgs) = @_;
+    my ($baseConfigDir, $configFile, $curArgs) = @_;
+
+    # Relative config files in another config file are considered relative
+    # to the original config file.  The first config file read will have the
+    # baseConfigDir undefined.  Future calls will pass the directory the config
+    # file resides in.
+    
+    if (!defined $baseConfigDir) {
+        $configFile = rel2abs($configFile);
+    }
+    elsif (!file_name_is_absolute( $configFile)) {
+        $configFile = catfile($baseConfigDir, $configFile);
+    }
+    $baseConfigDir = dirname($configFile);
+    
+
 
     open(CONFIG, "<$configFile") 
         or die "Unable to open config file: $configFile: $!\n";
@@ -643,7 +658,7 @@ sub parseConfig {
     }
     close(CONFIG);
 
-    parseCommandLine(\@args);
+    parseCommandLine($baseConfigDir, \@args);
 
     if ($#args > 0) {
 	push @$curArgs, @args;
@@ -653,7 +668,7 @@ sub parseConfig {
 #-------------------------------------------------------------------------------
 
 sub parseCommandLine {
-    my ($args) = @_;
+    my ($baseConfigDir, $args) = @_;
 
     #todo: need GetOptionsFromArray for this to work
     Getopt::Long::Configure("bundling");
@@ -661,7 +676,7 @@ sub parseCommandLine {
 	"file-pattern=s" => \$filenamePattern,
 	"config=s"       => sub {
 				my ($option, $value) = @_;
-				parseConfig($value, $args);
+				parseConfig($baseConfigDir, $value, $args);
 			    },
 	"dry-run|test"   => \$test,
 	"dng!"           => \$toDNG,
@@ -685,7 +700,7 @@ sub parseCommandLine {
 
 
 # Parse the command line
-parseCommandLine(\@ARGV) or pod2usage(2);
+parseCommandLine(undef, \@ARGV) or pod2usage(2);
 
 pod2usage({ -exitval => 1,
             -verbose => $verbose ? 1 : 0 } ) if $help;
