@@ -746,18 +746,12 @@ if ($toDNG && !$dngConvert) {
 	# For Windows or Mac OS X, default to Adobe's DNG Converter
 	if ( $^O =~ /darwin/i ) {
 	    $dngConvert = '/Applications/Adobe DNG Converter.app/Contents/MacOS/Adobe DNG Converter';
-	}
-	else { # MSWin32 or cygwin
+	}    
+	else { # MSWin32 or cygwin	    
 	    $dngConvert = 'C:\Program Files\Adobe\Adobe DNG Converter.exe';
-	    if ($^O =~ /cygwin/i) {
-#		$dngConvert = Cygwin::win_to_posix_path($dngConvert);
-	    }
 	    if (! -x $dngConvert) {
 	        # Windows Visa/7 64-bit
 	        $dngConvert = 'C:\Program Files (x86)\Adobe\Adobe DNG Converter.exe';
-	        if ($^O =~ /cygwin/i) {
-#	            $dngConvert = Cygwin::win_to_posix_path($dngConvert);
-	        }
 	    }
 	}
 
