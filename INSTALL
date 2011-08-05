@@ -17,3 +17,7 @@ INSTALLATION
 perl Makefile.PL
 make
 make install
+
+To install in a different directory provide the INSTALL_BASE parameter
+
+perl Makefile.PL INSTALL_BASE=/path/to/your/home
