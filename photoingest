@@ -110,8 +110,11 @@ sub createFilename {
   # Get the EXIF timestamp from the file.
   # If it doesn't have one, use today's date.
   my $exifTool = new Image::ExifTool;
-  my $info = $exifTool->ImageInfo($file, 'DateTimeOriginal');
+  my $info = $exifTool->ImageInfo($file, 'DateTimeOriginal', 'CreateDate');
   my $exifDate = $$info{'DateTimeOriginal'};
+  if (!$exifDate) {
+    $exifDate = $$info{'CreateDate'};
+  }
   my ($year, $month, $day, $hour, $minute, $second);
   if ($exifDate) {
     ($year, $month, $day, $hour, $minute, $second) = split(/[ :Z]/, $exifDate);
