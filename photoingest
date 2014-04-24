@@ -28,7 +28,7 @@ use File::stat;
 use Getopt::Long;
 use Pod::Usage;
 
-our $VERSION = "1.0-beta-4";
+our $VERSION = "1.0-beta-5";
 our $COPYRIGHT = "Copyright (c) 2010 David Hay";
 
 # Check that we have the necessary version of Getopt
